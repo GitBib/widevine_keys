@@ -131,18 +131,27 @@ def WV_Function(pssh, lic_url, cert_b64=None):
 if isinstance(pssh, list):
 	for item in pssh:
 		with contextlib.suppress(ValueError):
-			correct, keys = WV_Function(item, lic_url)
+			correct, keys = WV_Function(item[0], lic_url)
 
 			for key in keys:
-				KEY_LIST.append(key)
-				print(f'KID:KEY -> {key}')
+				# Append additional data to the key
+				key_with_additional_data = (key, item[1], item[2], item[3])
+				KEY_LIST.append(key_with_additional_data)
 else:
-	correct, keys = WV_Function(pssh, lic_url)
+	correct, keys = WV_Function(pssh[0], lic_url)
 
 	for key in keys:
-		KEY_LIST.append(key)
-		print(f'KID:KEY -> {key}')
+		# Append additional data to the key
+		key_with_additional_data = (key, pssh[1], pssh[2], pssh[3])
+		KEY_LIST.append(key_with_additional_data)
 
-
-	for key in KEY_LIST:
-		print(f'KID:KEY -> {key}')
+for key_info in KEY_LIST:
+	key, aset_id, aset_contentType, aset_lang = key_info
+	print(f"KID:KEY -> {key}")
+	if aset_id is not None:
+		print(f"ID -> {aset_id}")
+	if aset_contentType is not None:
+		print(f"Content Type -> {aset_contentType}")
+	if aset_lang is not None:
+		print(f"Language -> {aset_lang}")
+	print("-----")

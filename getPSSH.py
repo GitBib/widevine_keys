@@ -20,15 +20,19 @@ def get_pssh(input):
         # Parse the XML data from the file
         root = ET.fromstring(file_data)
 
-    # Find all the cenc:pssh elements and extract their content
-    for elem in root.iter():
-        if 'pssh' in elem.tag:
-            pssh_data = elem.text
-            # If the pssh data is base64 encoded, let's decode it
-            try:
-                pssh_data = base64.b64decode(pssh_data).decode('utf-8')
-            except:
-                pass
-            pssh_data_list.append(pssh_data)
+    # Find all the AdaptationSet elements
+    for aset in root.iter('{urn:mpeg:dash:schema:mpd:2011}AdaptationSet'):
+        # Find all the cenc:pssh elements that are inside a ContentProtection element
+        # without a value attribute equal to "MSPR 2.0"
+        for cp in aset.iter('{urn:mpeg:dash:schema:mpd:2011}ContentProtection'):
+            if cp.attrib.get('value') != 'MSPR 2.0':
+                for pssh in cp.iter('{urn:mpeg:cenc:2013}pssh'):
+                    pssh_data = pssh.text
+                    # Get the id, contentType, and lang attributes of the AdaptationSet
+                    aset_id = aset.attrib.get('id')
+                    aset_contentType = aset.attrib.get('contentType')
+                    aset_lang = aset.attrib.get('lang')
+                    # Append the pssh data and the attributes to the list
+                    pssh_data_list.append((pssh_data, aset_id, aset_contentType, aset_lang))
 
     return pssh_data_list
